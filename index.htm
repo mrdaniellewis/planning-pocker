@@ -11,6 +11,7 @@ body {
   position: relative;
   perspective: 1000vh;
   height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 button {
@@ -42,26 +43,6 @@ button {
 button:not(.active):focus {
   color: #fff;
   border-color: #fff;
-}
-
-button::after {
-  content: "Ready";
-  font-size: 15vw;
-  position: absolute;
-  border-radius: 2vw;
-  border: 10vw solid white;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: block;
-  background: linear-gradient(115deg, transparent 75%, rgba(255,255,255,.8) 75%) 0 0, linear-gradient(245deg, transparent 75%, rgba(255,255,255,.8) 75%) 0 0, linear-gradient(115deg, transparent 75%, rgba(255,255,255,.8) 75%) 7px -15px, linear-gradient(245deg, transparent 75%, rgba(255,255,255,.8) 75%) 7px -15px, #36c;
-  background-size: 15px 30px;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: rotateY(180deg);
-  transition-duration: 1s;
-  transition-property: font-size, line-height, border-radius, border-width;
 }
 
 /* Vertical */
@@ -107,18 +88,8 @@ button.active.active {
   left: 0;
   top: 0;
   font-size: 50vw;
-  border-width: 10vw;
+  border-width: 2vw;
   /* The translate keeps the open card in front in Firefox.  In Chrome a z-index is needed */
-  transform: translateZ(100vh) scaleX(.8) scaleY(.8) rotateY(180deg);
-}
-
-.active::after {
-  font-size: 15vh;
-  line-height: 96vh;
-  border-radius: 10vw;
-}
-
-button.turned.turned {
   transform: translateZ(100vh) scaleX(.8) scaleY(.8);
 }
 
@@ -128,10 +99,7 @@ button.turned.turned {
 
 </style>
 
-<button type="button">
-  <span class="front">0</span>
-  <span class="back">Turn</span>
-</button>
+<button type="button">0</button>
 <button type="button">½</button>
 <button type="button">1</button>
 <button type="button">2</button>
@@ -146,6 +114,7 @@ button.turned.turned {
 <button type="button" aria-label="Unknown">?</button>
 <button type="button" aria-label="Infinity">∞</button>
 <button type="button">☕</button>
+
 <script>
 (function() {
   const rLanguage = /-.*$/;
@@ -222,10 +191,7 @@ button.turned.turned {
       return;
     }
 
-    let defaultVoice = speechSynthesis.getVoices().filter(voice => voice.default)[0];
-    if (!defaultVoice) {
-      speechSynthesis.getVoices().filter(voice => voice.lang === document.documentElement.lang)[0];
-    }
+    let defaultVoice = speechSynthesis.getVoices().filter(voice => voice.lang === document.documentElement.lang)[0];
     if (!defaultVoice) {
       const languagePrefix = document.documentElement.lang.replace(rLanguage);
       speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(languagePrefix));
@@ -234,7 +200,6 @@ button.turned.turned {
     const used = [defaultVoice.lang.replace(rLanguage, '')];
     [defaultVoice || '']
       .concat(speechSynthesis.getVoices()
-        .filter(voice => !voice.default)
         .map(voice => [Math.random(), voice])
         .sort((a, b) => a[0] - b[0])
         .map(([_, voice]) => voice)
@@ -274,22 +239,14 @@ button.turned.turned {
       // Left click only
       return;
     }
+
     var target = e.target;
     if (target.nodeName.toLowerCase() !== 'button') {
       return;
     }
 
     if (target.classList.contains('active')) {
-      if (!target.classList.contains('turned')) {
-        speak(target.textContent.trim());
-        target.addEventListener('transitionend', function handler() {
-          target.removeEventListener('transitionend', handler);
-        });
-      } else {
-        speechSynthesis && speechSynthesis.cancel();
-      }
-
-      target.classList.toggle('turned');
+      close();
     } else {
       if (document.body.classList.contains('dim')) {
         close();
@@ -306,5 +263,62 @@ button.turned.turned {
       close();
     }
   });
+
+  window.addEventListener('shake', () => {
+    const open = document.querySelector('.active');
+    if (!open) {
+      return;
+    }
+    speak(open.textContent.trim());
+  }, false);
+
+  // ------------------
+  // Detect a shake
+  // https://github.com/GerManson/gShake
+  // ------------------
+
+  const settings = {
+    sensibility:  20,
+    timeout: 0,
+    callback: null,
+  };
+
+  const coords = {
+    x: null,
+    y: null,
+    z: null
+  };
+
+  let lastTime = new Date();
+
+  function onMotion(e) {
+    const current = e.accelerationIncludingGravity;
+    if (coords.x !== null || coords.y !== null || coords.z !== null) {
+      const deltaX = Math.abs(coords.x - current.x);
+      const deltaY = Math.abs(coords.y - current.y);
+      const deltaZ = Math.abs(coords.z - current.z);
+
+      if ((deltaX > settings.sensibility && deltaY > settings.sensibility) ||
+         (deltaX > settings.sensibility && deltaZ > settings.sensibility) ||
+         (deltaY > settings.sensibility && deltaZ > settings.sensibility)) {
+
+            //calculate time in milliseconds since last shake registered
+            const currentTime = new Date(),
+            timeDifference = currentTime.getTime() - lastTime.getTime();
+
+            if (timeDifference > 300) {
+              const event = new Event('shake');
+              window.dispatchEvent(event);
+              lastTime = new Date();
+            }
+      }
+    }
+
+    coords.x = current.x;
+    coords.y = current.y;
+    coords.z = current.z;
+  }
+
+  window.addEventListener('devicemotion', onMotion, false);
 }());
 </script>
