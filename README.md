@@ -1,13 +1,6 @@
 # Planning poker
 
-A planning poker web app.
+A planning poker web app for a phone.
 
-To-do:
+On an iPhone, save to your home screen to get it full screen.
 
-* Tidy up positioning so it is clean and uniform on all devices
-* Add close button
-* Add sound toggle
-* Auto open when turned round
-* Auto close when shaken
-* Choose font
-* Use apple symbols for coffee

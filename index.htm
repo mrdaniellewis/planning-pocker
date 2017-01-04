@@ -31,7 +31,7 @@ button {
   height: calc((100vh - 15vw) / 5);
   transform-style: preserve-3d;
   transition-duration: 1s;
-  transition-property: transform, width, height, font-size, border-width, top, left, border-radius;
+  transition-property: transform, width, height, font-size, border-width, top, left, border-radius, line-height;
   position: absolute;
   will-change: transform;
   z-index: 0;
@@ -117,110 +117,6 @@ button.active.active {
 
 <script>
 (function() {
-  const rLanguage = /-.*$/;
-  // Oddly the ∞ symbol has no translation when read out by the speech API
-  const languageMap = {
-    '∞': {
-      en: 'Infinity',
-      ar: 'ما لا نهاية',
-      cs: 'Nekonečno',
-      cy: 'Infinity',
-      da: 'Uendelighed',
-      de: 'Unendlichkeit',
-      el: 'Απειρο',
-      es: 'infinito',
-      fi: 'äärettömyys',
-      fr: 'Infini',
-      he: 'אינסוף',
-      hi: 'अनन्तता',
-      hu: 'végtelenség',
-      id: 'Tak terbatas',
-      it: 'Infinito',
-      ja: '無限',
-      ko: '무한대',
-      nb: 'Uendelighet',
-      nl: 'Oneindigheid',
-      pl: 'Nieskończoność',
-      pt: 'Infinidade',
-      ro: 'Infinit',
-      ru: 'бесконечность',
-      sk: 'nekonečno',
-      sv: 'Oändlighet',
-      th: 'ความไม่มีที่สิ้นสุด',
-      tr: 'Sonsuzluk',
-      zh: '无穷',
-    },
-    '?': {
-      en: 'Unknown',
-      ar: 'غير معروف',
-      cs: 'Neznámý',
-      cy: 'anhysbys',
-      da: 'Ukendt',
-      de: 'Unbekannt',
-      el: 'Αγνωστος',
-      es: 'Desconocido',
-      fi: 'Tuntematon',
-      fr: 'Inconnu',
-      he: 'לא ידוע',
-      hi: 'अनजान',
-      hu: 'Ismeretlen',
-      id: 'tidak diketahui',
-      it: 'Sconosciuto',
-      ja: '未知の',
-      ko: '알 수 없는',
-      nb: 'Ukjent',
-      nl: 'Onbekend',
-      pl: 'Nieznany',
-      pt: 'Desconhecido',
-      ro: 'Necunoscut',
-      ru: 'неизвестный',
-      sk: 'nevedno',
-      sv: 'haijulikani',
-      th: 'ไม่ทราบ',
-      tr: 'Bilinmiyor',
-      zh: '未知',
-    },
-  };
-
-  function getLanguageText(text, lang) {
-    return languageMap[text] ? languageMap[text][lang.replace(rLanguage, '')] : text;
-  }
-
-  function speak(text) {
-    if (!window.speechSynthesis || speechSynthesis.getVoices().length === 0) {
-      return;
-    }
-
-    let defaultVoice = speechSynthesis.getVoices().filter(voice => voice.lang === document.documentElement.lang)[0];
-    if (!defaultVoice) {
-      const languagePrefix = document.documentElement.lang.replace(rLanguage);
-      speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(languagePrefix));
-    }
-
-    const used = [defaultVoice.lang.replace(rLanguage, '')];
-    [defaultVoice || '']
-      .concat(speechSynthesis.getVoices()
-        .map(voice => [Math.random(), voice])
-        .sort((a, b) => a[0] - b[0])
-        .map(([_, voice]) => voice)
-        .filter((voice) => {
-          // Filter out voices in the same language
-          if (used.find(prefix => voice.lang.startsWith(prefix))) {
-            return false;
-          }
-          used.push(voice.lang.replace(rLanguage, ''));
-          return true;
-        })
-        .filter(voice => getLanguageText(text, voice.lang))
-        .slice(0, 3)
-      )
-      .forEach((voice) => {
-        const utterance = new SpeechSynthesisUtterance(getLanguageText(text, voice.lang));
-        utterance.voice = voice;
-        speechSynthesis.speak(utterance);
-      });
-  }
-
   function close() {
     Array.from(document.querySelectorAll('.active')).forEach(button => {
       button.addEventListener('transitionend', function handler() {
@@ -231,7 +127,6 @@ button.active.active {
       button.classList.remove('active', 'turned');
     });
     document.body.classList.remove('dim');
-    speechSynthesis && speechSynthesis.cancel();
   }
 
   document.addEventListener('click', (e) => {
@@ -263,62 +158,5 @@ button.active.active {
       close();
     }
   });
-
-  window.addEventListener('shake', () => {
-    const open = document.querySelector('.active');
-    if (!open) {
-      return;
-    }
-    speak(open.textContent.trim());
-  }, false);
-
-  // ------------------
-  // Detect a shake
-  // https://github.com/GerManson/gShake
-  // ------------------
-
-  const settings = {
-    sensibility:  20,
-    timeout: 0,
-    callback: null,
-  };
-
-  const coords = {
-    x: null,
-    y: null,
-    z: null
-  };
-
-  let lastTime = new Date();
-
-  function onMotion(e) {
-    const current = e.accelerationIncludingGravity;
-    if (coords.x !== null || coords.y !== null || coords.z !== null) {
-      const deltaX = Math.abs(coords.x - current.x);
-      const deltaY = Math.abs(coords.y - current.y);
-      const deltaZ = Math.abs(coords.z - current.z);
-
-      if ((deltaX > settings.sensibility && deltaY > settings.sensibility) ||
-         (deltaX > settings.sensibility && deltaZ > settings.sensibility) ||
-         (deltaY > settings.sensibility && deltaZ > settings.sensibility)) {
-
-            //calculate time in milliseconds since last shake registered
-            const currentTime = new Date(),
-            timeDifference = currentTime.getTime() - lastTime.getTime();
-
-            if (timeDifference > 300) {
-              const event = new Event('shake');
-              window.dispatchEvent(event);
-              lastTime = new Date();
-            }
-      }
-    }
-
-    coords.x = current.x;
-    coords.y = current.y;
-    coords.z = current.z;
-  }
-
-  window.addEventListener('devicemotion', onMotion, false);
 }());
 </script>
