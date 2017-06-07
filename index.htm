@@ -241,7 +241,18 @@ button.active.active.weight-normal {
     }
   }
 
-  function click(button) {
+  document.addEventListener('mouseup', (e) => {
+    console.log('mouseup');
+    if (e.button !== 0) {
+      // Left click only
+      return;
+    }
+
+    var button = e.target;
+    if (button.nodeName.toLowerCase() !== 'button') {
+      return;
+    }
+
     if (!button.classList.contains('active')) {
       toggle(button);
       return;
@@ -252,24 +263,6 @@ button.active.active.weight-normal {
       single: () => toggle(button),
     });
     clicker.click();
-  }
-
-  document.addEventListener('click', (e) => {
-    if (e.button !== 0) {
-      // Left click only
-      return;
-    }
-
-    var target = e.target;
-    if (target.nodeName.toLowerCase() !== 'button') {
-      return;
-    }
-
-    click(target);
-  });
-
-  document.addEventListener('touchend', (e) => {
-    click(e.target);
   });
 
   document.addEventListener('keyup', (e) => {
