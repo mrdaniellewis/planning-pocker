@@ -20,24 +20,22 @@ button {
   border-radius: 2vw;
   appearance: none;
   display: block;
-  background: #000;
+  background: black;
   border: 1px solid yellow;
   color: yellow;
   cursor: pointer;
   margin: 0;
   font-size: 15vw;
   -webkit-text-size-adjust: 100%;
-  width: 30vw;
-  height: calc((100vh - 15vw) / 5);
   transform-style: preserve-3d;
-  transition-duration: 1s;
-  transition-property: transform, width, height, font-size, border-width, top, left, border-radius, line-height;
+  transition-duration: .5s;
+  transition-property: transform, width, height, font-size, font-weight, border-width, top, left, border-radius, color, background-color;
   position: absolute;
   will-change: transform;
   z-index: 0;
   outline: 0;
-  line-height: 100%;
   padding: 0;
+  line-height: 0;
 }
 
 button:not(.active):focus {
@@ -45,38 +43,88 @@ button:not(.active):focus {
   border-color: #fff;
 }
 
-/* Vertical */
-button:nth-of-type(-n+3) {
-  top: 2.5vw;
+@media (orientation: portrait) {
+  button {
+    width: 30vw;
+    height: calc((100vh - 15vw) / 5);
+    font-size: 15vw;
+  }
+
+  /* Vertical */
+  button:nth-of-type(-n+3) {
+    top: 2.5vw;
+  }
+
+  button:nth-of-type(n+4):nth-of-type(-n+6) {
+    top: calc((100vh - 15vw) / 5 + 5vw);
+  }
+
+  button:nth-of-type(n+7):nth-of-type(-n+9) {
+    top: calc(2 * (100vh - 15vw) / 5 + 7.5vw);
+  }
+
+  button:nth-of-type(n+10):nth-of-type(-n+12) {
+    top: calc(3 * (100vh - 15vw) / 5 + 10vw);
+  }
+
+  button:nth-of-type(n+13):nth-of-type(-n+15) {
+    top: calc(4 * (100vh - 15vw) / 5 + 12.5vw);
+  }
+
+  /* Horizontal */
+  button:nth-of-type(3n+1) {
+    left: 2.5vw;
+  }
+
+  button:nth-of-type(3n+2) {
+    left: 35vw;
+  }
+
+  button:nth-of-type(3n+3) {
+    left: 67.5vw;
+  }
 }
 
-button:nth-of-type(n+4):nth-of-type(-n+6) {
-  top: calc((100vh - 15vw) / 5 + 5vw);
-}
+@media (orientation: landscape) {
+  button {
+    width: 17vw;
+    height: calc((100vh - 10vw) / 3);
+    font-size: 9vw;
+  }
 
-button:nth-of-type(n+7):nth-of-type(-n+9) {
-  top: calc(2 * (100vh - 15vw) / 5 + 7.5vw);
-}
+  /* Vertical */
+  button:nth-of-type(-n+5) {
+    top: 2.5vw;
+  }
 
-button:nth-of-type(n+10):nth-of-type(-n+12) {
-  top: calc(3 * (100vh - 15vw) / 5 + 10vw);
-}
+  button:nth-of-type(n+6):nth-of-type(-n+10) {
+    top: calc((100vh - 10vw) / 3 + 5vw);
+  }
 
-button:nth-of-type(n+13):nth-of-type(-n+15) {
-  top: calc(4 * (100vh - 15vw) / 5 + 12.5vw);
-}
+  button:nth-of-type(n+11):nth-of-type(-n+15) {
+    top: calc(2 * (100vh - 10vw) / 3 + 7.5vw);
+  }
 
-/* Horizontal */
-button:nth-of-type(3n+1) {
-  left: 2.5vw;
-}
+  /* Horizontal */
+  button:nth-of-type(5n+1) {
+    left: 2.5vw;
+  }
 
-button:nth-of-type(3n+2) {
-  left: 35vw;
-}
+  button:nth-of-type(5n+2) {
+    left: 22vw;
+  }
 
-button:nth-of-type(3n+3) {
-  left: 67.5vw;
+  button:nth-of-type(5n+3) {
+    left: 41.5vw;
+  }
+
+  button:nth-of-type(5n+4) {
+    left: 61vw;
+  }
+
+  button:nth-of-type(5n+5) {
+    left: 80.5vw;
+  }
 }
 
 /* Override double nth-of-type selector */
@@ -88,9 +136,18 @@ button.active.active {
   left: 0;
   top: 0;
   font-size: 50vw;
+  font-weight: bold;
   border-width: 2vw;
   /* The translate keeps the open card in front in Firefox.  In Chrome a z-index is needed */
   transform: translateZ(100vh) scaleX(.8) scaleY(.8);
+  color: black;
+  background: yellow;
+  border-color: yellow;
+  transition-property: transform, width, height, font-size, border-width, top, left, border-radius, color, background-color;
+}
+
+button.active.active.weight-normal {
+  font-weight: normal;
 }
 
 .dim > button:not(.active) {
@@ -113,7 +170,7 @@ button.active.active {
 <button type="button">100</button>
 <button type="button" aria-label="Unknown">?</button>
 <button type="button" aria-label="Infinity">∞</button>
-<button type="button">☕</button>
+<button type="button" class="weight-normal">☕</button>
 
 <script>
 (function() {
