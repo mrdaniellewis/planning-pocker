@@ -154,6 +154,11 @@ button.active.active.weight-normal {
   opacity: .5;
 }
 
+.speak {
+  
+
+}
+
 </style>
 
 <button type="button">0</button>
@@ -174,6 +179,33 @@ button.active.active.weight-normal {
 
 <script>
 (function() {
+  let clicker;
+
+  class Clicker {
+    constructor({ double, single }) {
+      this.double = double;
+      this.single = single;
+    }
+
+    remove() {
+      clicker = null;
+    }
+
+    click() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.remove();
+        this.double();
+        return;
+      }
+
+      this.timer = setTimeout(() => {
+        this.remove();
+        this.single();
+      }, 200);
+    }
+  }
+
   function close() {
     Array.from(document.querySelectorAll('.active')).forEach(button => {
       button.addEventListener('transitionend', function handler() {
@@ -184,6 +216,42 @@ button.active.active.weight-normal {
       button.classList.remove('active');
     });
     document.body.classList.remove('dim');
+  }
+
+  function speak(button) {
+    if (!window.speechSynthesis) {
+      return;
+    }
+    const text = button.getAttribute('aria-label') || button.textContent;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utterance);
+  }
+
+  function toggle(button) {
+    if (button.classList.contains('active')) {
+      close();
+    } else {
+      if (document.body.classList.contains('dim')) {
+        close();
+      }
+
+      document.body.classList.add('dim');
+      button.classList.add('active');
+    }
+  }
+
+  function click(button) {
+    if (!button.classList.contains('active')) {
+      toggle(button);
+      return;
+    }
+
+    clicker = clicker || new Clicker({
+      double: () => speak(button),
+      single: () => toggle(button),
+    });
+    clicker.click();
   }
 
   document.addEventListener('click', (e) => {
@@ -197,23 +265,21 @@ button.active.active.weight-normal {
       return;
     }
 
-    if (target.classList.contains('active')) {
-      close();
-    } else {
-      if (document.body.classList.contains('dim')) {
-        close();
-      }
+    click(target);
+  });
 
-      document.body.classList.add('dim');
-      target.classList.add('active');
-    }
+  document.addEventListener('touchend', (e) => {
+    click(e.target);
   });
 
   document.addEventListener('keyup', (e) => {
     if (e.key === "Escape" || e.keyCode === 27) {
       e.preventDefault();
       close();
+    } else if (e.key === "r" || e.keyCode === 115) {
+      speak(e.target);
     }
   });
+
 }());
 </script>
