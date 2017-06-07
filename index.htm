@@ -179,6 +179,70 @@ button.active.active.weight-normal {
 
 <script>
 (function() {
+  const rLanguage = /-.*$/;
+  const languageMap = {
+    '∞': {
+      en: 'Infinity',
+      ar: 'ما لا نهاية',
+      cs: 'Nekonečno',
+      cy: 'Infinity',
+      da: 'Uendelighed',
+      de: 'Unendlichkeit',
+      el: 'Απειρο',
+      es: 'infinito',
+      fi: 'äärettömyys',
+      fr: 'Infini',
+      he: 'אינסוף',
+      hi: 'अनन्तता',
+      hu: 'végtelenség',
+      id: 'Tak terbatas',
+      it: 'Infinito',
+      ja: '無限',
+      ko: '무한대',
+      nb: 'Uendelighet',
+      nl: 'Oneindigheid',
+      pl: 'Nieskończoność',
+      pt: 'Infinidade',
+      ro: 'Infinit',
+      ru: 'бесконечность',
+      sk: 'nekonečno',
+      sv: 'Oändlighet',
+      th: 'ความไม่มีที่สิ้นสุด',
+      tr: 'Sonsuzluk',
+      zh: '无穷',
+    },
+    '?': {
+      en: 'Unknown',
+      ar: 'غير معروف',
+      cs: 'Neznámý',
+      cy: 'anhysbys',
+      da: 'Ukendt',
+      de: 'Unbekannt',
+      el: 'Αγνωστος',
+      es: 'Desconocido',
+      fi: 'Tuntematon',
+      fr: 'Inconnu',
+      he: 'לא ידוע',
+      hi: 'अनजान',
+      hu: 'Ismeretlen',
+      id: 'tidak diketahui',
+      it: 'Sconosciuto',
+      ja: '未知の',
+      ko: '알 수 없는',
+      nb: 'Ukjent',
+      nl: 'Onbekend',
+      pl: 'Nieznany',
+      pt: 'Desconhecido',
+      ro: 'Necunoscut',
+      ru: 'неизвестный',
+      sk: 'nevedno',
+      sv: 'haijulikani',
+      th: 'ไม่ทราบ',
+      tr: 'Bilinmiyor',
+      zh: '未知',
+    },
+  };
+
   let clicker;
 
   class Clicker {
@@ -218,17 +282,51 @@ button.active.active.weight-normal {
     document.body.classList.remove('dim');
   }
 
+  function getLanguageText(button, lang) {
+    const text = button.getAttribute('aria-label') || button.textContent;
+    return languageMap[text] ? languageMap[text][lang.replace(rLanguage, '')] : text;
+  }
+
   function speak(button) {
-    if (!window.speechSynthesis) {
+    if (!window.speechSynthesis || speechSynthesis.getVoices().length === 0) {
       return;
     }
-    const text = button.getAttribute('aria-label') || button.textContent;
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
+
+    let defaultVoice = speechSynthesis.getVoices().filter(voice => voice.lang === document.documentElement.lang)[0];
+    if (!defaultVoice) {
+      const languagePrefix = document.documentElement.lang.replace(rLanguage);
+      speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(languagePrefix));
+    }
+
+    const used = [defaultVoice.lang.replace(rLanguage, '')];
+    [defaultVoice || '']
+      .concat(speechSynthesis.getVoices()
+        .map(voice => [Math.random(), voice])
+        .sort((a, b) => a[0] - b[0])
+        .map(([_, voice]) => voice)
+        .filter((voice) => {
+          // Filter out voices in the same language
+          if (used.find(prefix => voice.lang.startsWith(prefix))) {
+            return false;
+          }
+          used.push(voice.lang.replace(rLanguage, ''));
+          return true;
+        })
+        .filter(voice => getLanguageText(button, voice.lang))
+      )
+      .forEach((voice) => {
+        const utterance = new SpeechSynthesisUtterance(getLanguageText(button, voice.lang));
+        utterance.voice = voice;
+        speechSynthesis.speak(utterance);
+      });
   }
 
   function toggle(button) {
+    speechSynthesis.cancel();
     if (button.classList.contains('active')) {
       close();
     } else {
@@ -242,7 +340,6 @@ button.active.active.weight-normal {
   }
 
   document.addEventListener('mouseup', (e) => {
-    console.log('mouseup');
     if (e.button !== 0) {
       // Left click only
       return;
