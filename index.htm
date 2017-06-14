@@ -160,6 +160,16 @@ button.active.active.weight-normal {
   opacity: .5;
 }
 
+@media (orientation: landscape) and (min-aspect-ratio: 5/2) {
+  button {
+    font-size: 10vh;
+  }
+
+  button.active.active {
+    font-size: 80vh;
+  }
+}
+
 </style>
 
 <button type="button">0</button>
@@ -215,6 +225,7 @@ button.active.active.weight-normal {
       });
       button.style.zIndex = 1;
       button.classList.remove('active');
+      button.setAttribute('aria-expanded', 'false');
     });
     document.body.classList.remove('dim');
   }
@@ -238,6 +249,7 @@ button.active.active.weight-normal {
 
       document.body.classList.add('dim');
       button.classList.add('active');
+      button.setAttribute('aria-expanded', 'true');
     }
   }
 
